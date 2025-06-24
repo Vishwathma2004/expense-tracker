@@ -1,37 +1,5 @@
-let transactions = [
-  {
-    id: '1',
-    amount: 85.5,
-    description: 'Grocery shopping',
-    category: 'Food & Dining',
-    date: '2024-01-15',
-    type: 'expense'
-  },
-  {
-    id: '2',
-    amount: 2500,
-    description: 'Salary',
-    category: 'Income',
-    date: '2024-01-01',
-    type: 'income'
-  },
-  {
-    id: '3',
-    amount: 45,
-    description: 'Gas station',
-    category: 'Transportation',
-    date: '2024-01-14',
-    type: 'expense'
-  },
-  {
-    id: '4',
-    amount: 120,
-    description: 'Electric bill',
-    category: 'Utilities',
-    date: '2024-01-10',
-    type: 'expense'
-  }
-];
+// Load saved transactions from localStorage or start with an empty array
+let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
 
 const list = document.getElementById('transaction-list');
 const form = document.getElementById('transaction-form');
@@ -40,6 +8,11 @@ const openBtn = document.getElementById('open-dialog');
 const closeBtn = document.getElementById('close-dialog');
 
 let chartInstance = null;
+
+// === Save to localStorage ===
+function saveTransactions() {
+  localStorage.setItem('transactions', JSON.stringify(transactions));
+}
 
 // === Render Transaction List ===
 function renderTransactions() {
@@ -53,42 +26,39 @@ function renderTransactions() {
   }
 
   transactions.forEach(t => {
-  const li = document.createElement('li');
+    const li = document.createElement('li');
+    const isIncome = t.type === 'income';
+    const icon = isIncome ? '🔺' : '🔻';
+    const iconColor = isIncome ? '#10b981' : '#ef4444';
+    const sign = isIncome ? '+' : '-';
 
-  const isIncome = t.type === 'income';
-  const icon = isIncome ? '🔺' : '🔻';
-  const iconColor = isIncome ? '#10b981' : '#ef4444';
-  const sign = isIncome ? '+' : '-';
+    const formattedDate = new Date(t.date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
 
-  // Format the date nicely
-  const formattedDate = new Date(t.date).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
+    li.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 22px; color: ${iconColor};">${icon}</span>
+        <div>
+          <strong>${t.description}</strong><br/>
+          <small>${t.category}</small><br/>
+          <small>${formattedDate}</small>
+        </div>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-weight: bold; color: ${iconColor};">
+          ${sign}₹${t.amount.toFixed(2)}
+        </div>
+        <button onclick="deleteTransaction('${t.id}')" style="font-size: 14px; margin-top: 5px;">🗑️</button>
+      </div>
+    `;
+
+    li.style.justifyContent = 'space-between';
+    li.style.alignItems = 'center';
+    list.appendChild(li);
   });
-
-  li.innerHTML = `
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <span style="font-size: 22px; color: ${iconColor};">${icon}</span>
-      <div>
-        <strong>${t.description}</strong><br/>
-        <small>${t.category}</small><br/>
-        <small>${formattedDate}</small>
-      </div>
-    </div>
-    <div style="text-align: right;">
-      <div style="font-weight: bold; color: ${iconColor};">
-        ${sign}₹${t.amount.toFixed(2)}
-      </div>
-      <button onclick="deleteTransaction('${t.id}')" style="font-size: 14px; margin-top: 5px;">🗑️</button>
-    </div>
-  `;
-
-  li.style.justifyContent = 'space-between';
-  li.style.alignItems = 'center';
-  list.appendChild(li);
-});
-
 
   renderOverview();
   renderAnalyticsCharts();
@@ -97,6 +67,7 @@ function renderTransactions() {
 // === Delete Transaction ===
 function deleteTransaction(id) {
   transactions = transactions.filter(t => t.id !== id);
+  saveTransactions();
   renderTransactions();
 }
 
@@ -125,6 +96,8 @@ form.addEventListener('submit', e => {
   };
 
   transactions.unshift(newTransaction);
+  saveTransactions();
+
   form.reset();
   modal.style.display = 'none';
   renderTransactions();
@@ -216,7 +189,6 @@ function renderAnalyticsCharts() {
     </div>
   `;
 
-  // Destroy previous instances if exist
   if (chartInstance?.bar) chartInstance.bar.destroy();
   if (chartInstance?.pie) chartInstance.pie.destroy();
 
