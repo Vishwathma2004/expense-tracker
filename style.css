@@ -206,3 +206,47 @@ form select {
   border-radius: 5px;
   border: 1px solid #ccc;
 }
+:root {
+  --bg-color: #ffffff;
+  --text-color: #111827;
+  --card-color: #f3f4f6;
+  --accent-color: #10b981;
+}
+
+/* Dark Mode Styles */
+body.dark {
+  background-color: #111827;
+  color: #f9fafb; /* Light text for dark bg */
+}
+
+body.dark .card {
+  background-color: #1f2937;
+  color: #f9fafb;
+}
+
+body.dark input,
+body.dark select,
+body.dark button,
+body.dark textarea {
+  background-color: #1f2937;
+  color: #f9fafb;
+  border: 1px solid #4b5563;
+}
+
+body.dark input::placeholder,
+body.dark textarea::placeholder {
+  color: #9ca3af;
+}
+
+body.dark .value {
+  color: #ffffff;
+}
+
+body.dark li {
+  background-color: #1e293b;
+  color: #f9fafb;
+}
+
+body.dark li small {
+  color: #cbd5e1;
+}

@@ -6,6 +6,7 @@ const form = document.getElementById('transaction-form');
 const modal = document.getElementById('modal');
 const openBtn = document.getElementById('open-dialog');
 const closeBtn = document.getElementById('close-dialog');
+const themeToggle = document.getElementById('theme-toggle');
 
 let chartInstance = null;
 
@@ -174,17 +175,22 @@ function renderAnalyticsCharts() {
 
   const categories = Object.keys(categoryTotals);
   const amounts = Object.values(categoryTotals);
+
+  const isDark = document.body.classList.contains('dark');
+  const textColor = isDark ? '#f9fafb' : '#111827';
+  const gridColor = isDark ? '#4b5563' : '#e5e7eb';
   const colors = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#84cc16', '#f97316', '#ec4899', '#6366f1'];
 
   chartWrapper.innerHTML = `
     <div class="dashboard-grid">
       <div class="card">
         <h3>📊 Expenses by Category</h3>
-        <canvas id="bar-chart"></canvas>
+        <canvas id="bar-chart" height="300"></canvas>
       </div>
       <div class="card">
         <h3>📊 Category Distribution</h3>
-        <canvas id="pie-chart"></canvas>
+        <canvas id="pie-chart" height="300"></canvas>
+
       </div>
     </div>
   `;
@@ -215,16 +221,23 @@ function renderAnalyticsCharts() {
             }
           },
           legend: { display: false },
-          title: { display: true, text: 'Expenses by Category' }
+          title: {
+            display: true,
+            text: 'Expenses by Category',
+            color: textColor
+          }
         },
         scales: {
           x: {
-            ticks: { maxRotation: 45, minRotation: 45 }
+            ticks: { color: textColor },
+            grid: { color: gridColor }
           },
           y: {
             ticks: {
+              color: textColor,
               callback: value => `₹${value}`
-            }
+            },
+            grid: { color: gridColor }
           }
         }
       }
@@ -248,13 +261,34 @@ function renderAnalyticsCharts() {
               label: ctx => `${ctx.label}: ₹${ctx.raw}`
             }
           },
-          legend: { position: 'bottom' },
-          title: { display: true, text: 'Category Distribution' }
+          legend: {
+            position: 'bottom',
+            labels: { color: textColor }
+          },
+          title: {
+            display: true,
+            text: 'Category Distribution',
+            color: textColor
+          }
         }
       }
     })
   };
 }
 
-// Initial render
+// === Dark/Light Theme Toggle ===
+if (localStorage.getItem('theme') === 'dark') {
+  document.body.classList.add('dark');
+  themeToggle.textContent = '☀️ Light Mode';
+}
+
+themeToggle.onclick = () => {
+  document.body.classList.toggle('dark');
+  const isDark = document.body.classList.contains('dark');
+  themeToggle.textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  renderAnalyticsCharts(); // Refresh charts with new theme
+};
+
+// === Initial Render ===
 renderTransactions();
