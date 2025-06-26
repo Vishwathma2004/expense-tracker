@@ -9,12 +9,16 @@
 <body>
   <!-- Header -->
   <header>
+    
     <div class="container header">
       <div class="logo">
         <div class="icon">💰</div>
         <h1>ExpenseTracker</h1>
       </div>
-      <button id="theme-toggle">🌙 Dark Mode</button> 
+      <button id="theme-toggle">🌙 Dark Mode</button>
+      <input type="file" id="import-csv" accept=".csv" style="display: none;" />
+    <button id="import-btn">📥 Import from CSV</button>
+ 
       <button id="open-dialog">➕ Add Transaction</button>
     </div>
   </header>
@@ -29,7 +33,7 @@
 
     <!-- Chart Section -->
     <section id="chart-container" class="chart"></section>
-
+    <button id="export-csv">📤 Export to CSV</button>
     <!-- Recent Transactions -->
     <section>
       <h2>📄 Recent Transactions</h2>
@@ -67,6 +71,11 @@
           <option value="expense">Expense</option>
           <option value="income">Income</option>
         </select>
+        <label style="margin-top: 10px; display: block;">
+        <input type="checkbox" id="recurring" />
+        Make this a recurring monthly transaction
+      </label>
+
         <button type="submit">Add</button>
       </form>
     </div>

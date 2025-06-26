@@ -7,6 +7,7 @@ const modal = document.getElementById('modal');
 const openBtn = document.getElementById('open-dialog');
 const closeBtn = document.getElementById('close-dialog');
 const themeToggle = document.getElementById('theme-toggle');
+const lastRecurringKey = 'lastRecurringDate';
 
 let chartInstance = null;
 
@@ -93,7 +94,8 @@ form.addEventListener('submit', e => {
     amount,
     category,
     date,
-    type
+    type,
+    recurring 
   };
 
   transactions.unshift(newTransaction);
@@ -289,6 +291,106 @@ themeToggle.onclick = () => {
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
   renderAnalyticsCharts(); // Refresh charts with new theme
 };
+function applyRecurringTransactions() {
+  const lastApplied = localStorage.getItem(lastRecurringKey);
+  const now = new Date();
+  const currentKey = `${now.getFullYear()}-${now.getMonth()}`;
+
+  // Prevent adding multiple times this month
+  if (lastApplied === currentKey) return;
+
+  const recurringTx = transactions.filter(t => t.recurring);
+
+  recurringTx.forEach(t => {
+    const newTx = {
+      ...t,
+      id: Date.now().toString() + Math.random().toString(36).slice(2), // new ID
+      date: now.toISOString().split('T')[0] // today's date
+    };
+    transactions.push(newTx);
+  });
+
+  if (recurringTx.length > 0) {
+    saveTransactions();
+    localStorage.setItem(lastRecurringKey, currentKey);
+  }
+}
+document.getElementById('export-csv').addEventListener('click', () => {
+  if (transactions.length === 0) {
+    alert('No transactions to export.');
+    return;
+  }
+
+  const headers = ['ID', 'Description', 'Amount', 'Category', 'Date', 'Type', 'Recurring'];
+  const csvRows = [headers.join(',')];
+
+  transactions.forEach(tx => {
+    const row = [
+      tx.id,
+      `"${tx.description}"`, // handle commas in description
+      tx.amount,
+      `"${tx.category}"`,
+      tx.date,
+      tx.type,
+      tx.recurring ? 'Yes' : 'No'
+    ];
+    csvRows.push(row.join(','));
+  });
+
+  const csvContent = csvRows.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `transactions-${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('import-btn').addEventListener('click', () => {
+  document.getElementById('import-csv').click();
+});
+
+document.getElementById('import-csv').addEventListener('change', function () {
+  const file = this.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const csv = e.target.result;
+    const lines = csv.split('\n').map(l => l.trim()).filter(l => l);
+    const [headerLine, ...rows] = lines;
+
+    const headers = headerLine.split(',').map(h => h.trim());
+    const newTransactions = [];
+
+    rows.forEach(row => {
+      const cols = row.split(',').map(c => c.trim());
+      if (cols.length < 6) return;
+
+      const [id, description, amount, category, date, type, recurring] = cols;
+
+      newTransactions.push({
+        id: id || Date.now().toString(),
+        description: description.replace(/^"|"$/g, ''),
+        amount: parseFloat(amount),
+        category: category.replace(/^"|"$/g, ''),
+        date,
+        type,
+        recurring: recurring?.toLowerCase() === 'yes'
+      });
+    });
+
+    transactions = [...transactions, ...newTransactions];
+    saveTransactions();
+    renderTransactions();
+    alert('Import successful!');
+  };
+
+  reader.readAsText(file);
+});
+
+applyRecurringTransactions();
 
 // === Initial Render ===
 renderTransactions();
