@@ -46,7 +46,7 @@ function renderTransactions() {
         <div>
           <strong>${t.description}</strong><br/>
           <small>${t.category}</small><br/>
-          <small>${formattedDate} ${t.recurring ? '🔁' : ''}</small>
+          <small>${formattedDate}</small>
         </div>
       </div>
       <div style="text-align: right;">
@@ -82,7 +82,7 @@ form.addEventListener('submit', e => {
   const category = form.category.value;
   const date = form.date.value;
   const type = form.type.value;
-  const recurring = document.getElementById('recurring')?.checked || false;
+  const recurring = form.recurring?.checked || false;
 
   if (!description || isNaN(amount) || amount <= 0 || !category || !date || !type) {
     alert('Please fill all fields correctly.');
@@ -292,7 +292,7 @@ themeToggle.onclick = () => {
   renderAnalyticsCharts(); // Refresh charts with new theme
 };
 
-// === Apply Recurring Transactions ===
+// === Recurring Transactions Handler ===
 function applyRecurringTransactions() {
   const lastApplied = localStorage.getItem(lastRecurringKey);
   const now = new Date();
@@ -317,7 +317,7 @@ function applyRecurringTransactions() {
   }
 }
 
-// === Export to CSV ===
+// === Export CSV ===
 document.getElementById('export-csv').addEventListener('click', () => {
   if (transactions.length === 0) {
     alert('No transactions to export.');
@@ -340,57 +340,44 @@ document.getElementById('export-csv').addEventListener('click', () => {
     csvRows.push(row.join(','));
   });
 
-  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const csvContent = csvRows.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
+
   const a = document.createElement('a');
   a.href = url;
   a.download = `transactions-${new Date().toISOString().split('T')[0]}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 });
+document.getElementById('add-category-btn').addEventListener('click', () => {
+  const newLabel = document.getElementById('new-category-label').value.trim();
+  const categorySelect = document.getElementById('category');
 
-// === Import CSV ===
-document.getElementById('import-btn').addEventListener('click', () => {
-  document.getElementById('import-csv').click();
+  if (!newLabel) {
+    alert('Please enter a category name.');
+    return;
+  }
+
+  // Prevent duplicates
+  const exists = Array.from(categorySelect.options).some(opt => opt.text.toLowerCase() === newLabel.toLowerCase());
+  if (exists) {
+    alert('Category already exists.');
+    return;
+  }
+
+  const newOption = document.createElement('option');
+  newOption.text = newLabel;
+  newOption.value = newLabel;
+  categorySelect.add(newOption);
+
+  // Select the new category
+  categorySelect.value = newLabel;
+
+  // Clear input field
+  document.getElementById('new-category-label').value = '';
 });
 
-document.getElementById('import-csv').addEventListener('change', function () {
-  const file = this.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const csv = e.target.result;
-    const lines = csv.split('\n').map(l => l.trim()).filter(l => l);
-    const [headerLine, ...rows] = lines;
-
-    const newTransactions = [];
-
-    rows.forEach(row => {
-      const cols = row.split(',').map(c => c.trim());
-      if (cols.length < 7) return;
-
-      const [id, description, amount, category, date, type, recurring] = cols;
-
-      newTransactions.push({
-        id: id || Date.now().toString(),
-        description: description.replace(/^"|"$/g, ''),
-        amount: parseFloat(amount),
-        category: category.replace(/^"|"$/g, ''),
-        date,
-        type,
-        recurring: recurring?.toLowerCase() === 'yes'
-      });
-    });
-
-    transactions = [...transactions, ...newTransactions];
-    saveTransactions();
-    renderTransactions();
-    alert('Import successful!');
-  };
-
-  reader.readAsText(file);
-});
-
+// === Initial Render ===
 applyRecurringTransactions();
-renderTransactions(); // === Initial Render ===
+renderTransactions();
