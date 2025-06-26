@@ -9,43 +9,38 @@
 <body>
   <!-- Header -->
   <header>
-    
     <div class="container header">
       <div class="logo">
         <div class="icon">💰</div>
         <h1>ExpenseTracker</h1>
       </div>
-      <button id="theme-toggle">🌙 Dark Mode</button>
-      <input type="file" id="import-csv" accept=".csv" style="display: none;" />
-    <button id="import-btn">📥 Import from CSV</button>
- 
-      <button id="open-dialog">➕ Add Transaction</button>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button id="theme-toggle">🌙 Dark Mode</button>
+        <button id="import-btn">📥 Import CSV</button>
+        <button id="export-csv">📤 Export CSV</button>
+        <button id="open-dialog">➕ Add Transaction</button>
+        <input type="file" id="import-csv" accept=".csv" style="display: none;" />
+      </div>
     </div>
   </header>
 
   <!-- Main Section -->
   <main class="container">
-
-    
-
-    <!-- Total Income/Expense Overview -->
+    <!-- Overview Section -->
     <section id="overview" class="overview"></section>
 
     <!-- Chart Section -->
     <section id="chart-container" class="chart"></section>
-    <button id="export-csv">📤 Export to CSV</button>
-    <!-- Recent Transactions -->
+
+    <!-- Transactions Section -->
     <section>
       <h2>📄 Recent Transactions</h2>
-      <!-- List view -->
       <ul id="transaction-list"></ul>
-
-      <!-- Card view -->
       <div id="transaction-list-cards" class="card-list"></div>
     </section>
   </main>
 
-  <!-- Modal for Add Transaction -->
+  <!-- Modal for Adding Transaction -->
   <div id="modal" class="modal">
     <div class="modal-content">
       <span class="close" id="close-dialog">&times;</span>
@@ -54,6 +49,7 @@
         <input type="text" id="description" placeholder="Description" required />
         <input type="number" id="amount" placeholder="Amount" required min="0.01" step="0.01" />
         <input type="date" id="date" required />
+        
         <select id="category" required>
           <option value="">Select Category</option>
           <option>Food & Dining</option>
@@ -67,14 +63,16 @@
           <option>Education</option>
           <option>Other</option>
         </select>
+        
         <select id="type" required>
           <option value="expense">Expense</option>
           <option value="income">Income</option>
         </select>
+        
         <label style="margin-top: 10px; display: block;">
-        <input type="checkbox" id="recurring" />
-        Make this a recurring monthly transaction
-      </label>
+          <input type="checkbox" id="recurring" />
+          Make this a recurring monthly transaction
+        </label>
 
         <button type="submit">Add</button>
       </form>
@@ -83,7 +81,8 @@
 
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- App Logic -->
+
+  <!-- App Script -->
   <script src="script.js"></script>
 </body>
 </html>

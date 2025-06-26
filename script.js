@@ -46,7 +46,7 @@ function renderTransactions() {
         <div>
           <strong>${t.description}</strong><br/>
           <small>${t.category}</small><br/>
-          <small>${formattedDate}</small>
+          <small>${formattedDate} ${t.recurring ? '🔁' : ''}</small>
         </div>
       </div>
       <div style="text-align: right;">
@@ -82,6 +82,7 @@ form.addEventListener('submit', e => {
   const category = form.category.value;
   const date = form.date.value;
   const type = form.type.value;
+  const recurring = document.getElementById('recurring')?.checked || false;
 
   if (!description || isNaN(amount) || amount <= 0 || !category || !date || !type) {
     alert('Please fill all fields correctly.');
@@ -95,7 +96,7 @@ form.addEventListener('submit', e => {
     category,
     date,
     type,
-    recurring 
+    recurring
   };
 
   transactions.unshift(newTransaction);
@@ -192,7 +193,6 @@ function renderAnalyticsCharts() {
       <div class="card">
         <h3>📊 Category Distribution</h3>
         <canvas id="pie-chart" height="300"></canvas>
-
       </div>
     </div>
   `;
@@ -291,12 +291,13 @@ themeToggle.onclick = () => {
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
   renderAnalyticsCharts(); // Refresh charts with new theme
 };
+
+// === Apply Recurring Transactions ===
 function applyRecurringTransactions() {
   const lastApplied = localStorage.getItem(lastRecurringKey);
   const now = new Date();
   const currentKey = `${now.getFullYear()}-${now.getMonth()}`;
 
-  // Prevent adding multiple times this month
   if (lastApplied === currentKey) return;
 
   const recurringTx = transactions.filter(t => t.recurring);
@@ -304,8 +305,8 @@ function applyRecurringTransactions() {
   recurringTx.forEach(t => {
     const newTx = {
       ...t,
-      id: Date.now().toString() + Math.random().toString(36).slice(2), // new ID
-      date: now.toISOString().split('T')[0] // today's date
+      id: Date.now().toString() + Math.random().toString(36).slice(2),
+      date: now.toISOString().split('T')[0]
     };
     transactions.push(newTx);
   });
@@ -315,6 +316,8 @@ function applyRecurringTransactions() {
     localStorage.setItem(lastRecurringKey, currentKey);
   }
 }
+
+// === Export to CSV ===
 document.getElementById('export-csv').addEventListener('click', () => {
   if (transactions.length === 0) {
     alert('No transactions to export.');
@@ -327,7 +330,7 @@ document.getElementById('export-csv').addEventListener('click', () => {
   transactions.forEach(tx => {
     const row = [
       tx.id,
-      `"${tx.description}"`, // handle commas in description
+      `"${tx.description}"`,
       tx.amount,
       `"${tx.category}"`,
       tx.date,
@@ -337,16 +340,16 @@ document.getElementById('export-csv').addEventListener('click', () => {
     csvRows.push(row.join(','));
   });
 
-  const csvContent = csvRows.join('\n');
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
-
   const a = document.createElement('a');
   a.href = url;
   a.download = `transactions-${new Date().toISOString().split('T')[0]}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 });
+
+// === Import CSV ===
 document.getElementById('import-btn').addEventListener('click', () => {
   document.getElementById('import-csv').click();
 });
@@ -361,12 +364,11 @@ document.getElementById('import-csv').addEventListener('change', function () {
     const lines = csv.split('\n').map(l => l.trim()).filter(l => l);
     const [headerLine, ...rows] = lines;
 
-    const headers = headerLine.split(',').map(h => h.trim());
     const newTransactions = [];
 
     rows.forEach(row => {
       const cols = row.split(',').map(c => c.trim());
-      if (cols.length < 6) return;
+      if (cols.length < 7) return;
 
       const [id, description, amount, category, date, type, recurring] = cols;
 
@@ -391,6 +393,4 @@ document.getElementById('import-csv').addEventListener('change', function () {
 });
 
 applyRecurringTransactions();
-
-// === Initial Render ===
-renderTransactions();
+renderTransactions(); // === Initial Render ===
