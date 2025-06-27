@@ -250,3 +250,14 @@ body.dark li {
 body.dark li small {
   color: #cbd5e1;
 }
+#transaction-list li {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+#transaction-list li.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+

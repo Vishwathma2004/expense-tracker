@@ -60,6 +60,10 @@ function renderTransactions() {
     li.style.justifyContent = 'space-between';
     li.style.alignItems = 'center';
     list.appendChild(li);
+    setTimeout(() => {
+      li.classList.add('show');
+    }, 10); // allow DOM to register the initial state
+
   });
 
   renderOverview();
@@ -68,10 +72,26 @@ function renderTransactions() {
 
 // === Delete Transaction ===
 function deleteTransaction(id) {
-  transactions = transactions.filter(t => t.id !== id);
-  saveTransactions();
-  renderTransactions();
+  const li = [...list.children].find(item =>
+    item.innerHTML.includes(`deleteTransaction('${id}')`)
+  );
+
+  if (li) {
+    li.style.transition = 'opacity 0.3s ease';
+    li.style.opacity = '0';
+    setTimeout(() => {
+      transactions = transactions.filter(t => t.id !== id);
+      saveTransactions();
+      renderTransactions();
+    }, 300);
+  } else {
+    // fallback
+    transactions = transactions.filter(t => t.id !== id);
+    saveTransactions();
+    renderTransactions();
+  }
 }
+
 
 // === Form Submit ===
 form.addEventListener('submit', e => {
@@ -229,6 +249,11 @@ function renderAnalyticsCharts() {
             color: textColor
           }
         },
+        animation: {
+          duration: 1000,
+          easing: 'easeOutQuart'
+        },
+
         scales: {
           x: {
             ticks: { color: textColor },
@@ -242,6 +267,7 @@ function renderAnalyticsCharts() {
             grid: { color: gridColor }
           }
         }
+        
       }
     }),
 
@@ -257,6 +283,11 @@ function renderAnalyticsCharts() {
       },
       options: {
         responsive: true,
+        animation: {
+          duration: 1000,
+          easing: 'easeOutQuart'
+        },
+
         plugins: {
           tooltip: {
             callbacks: {
@@ -273,6 +304,8 @@ function renderAnalyticsCharts() {
             color: textColor
           }
         }
+        
+        
       }
     })
   };
